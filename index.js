@@ -2,7 +2,6 @@ const PORT = process.env.PORT || 8000;
 const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
-const { response } = require('express');
 const app = express();
 
 const newspapers = [
@@ -29,7 +28,7 @@ const newspapers = [
     {
         name: 'nyt',
         address: 'https://www.nytimes.com/international/section/climate',
-        base: '',
+        base: 'https://www.nytimes.com',
     },
     {
         name: 'latimes',
@@ -80,16 +79,17 @@ newspapers.forEach(newspaper => {
         .then(response => {
             const html = response.data;
             const $ = cheerio.load(html);
-
-            $(`a:contains("climate")`,  html).each(function() {
-                const title = $(this).text();
-                const url = $(this).attr('href')
-                articles.push({
-                    title,
-                    url: newspaper.base + url,
-                    source: newspaper.name
+                $(`a:contains("climate")`,  html).each(function() {
+                    const title = $(this).text();
+                    const url = $(this).attr('href')
+                    
+                    articles.push({
+                        title: title.replace(/\s+/g, ' ').trim(),
+                        url: newspaper.base + url,
+                        source: newspaper.name
+                    })
+                
                 })
-            })
         })
 })
 
@@ -118,7 +118,7 @@ app.get('/news/:newspaperId', (req, res) => {
                 const url = $(this).attr('href')
                 
                 specificArticles.push({
-                    title,
+                    title: title.replace(/\s+/g, ' ').trim(),
                     url: newspaper[0].base + url,
                     source: newspaper[0].name
                 })
